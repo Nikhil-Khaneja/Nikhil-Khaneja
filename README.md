@@ -2,8 +2,6 @@
 
 I'm a software engineer working on **AI agents, GPU performance, and data systems**. I'm doing an M.S. in Data Intelligence at San José State University (graduating December 2027). Before that, I spent four years at Merkle (Dentsu) building data platforms and C++/Python backend services, and in summer 2026 I interned at MedLaunch Concepts, building LLM and AWS pipelines.
 
-I'm looking for **Summer 2027 internships** in ML systems, AI infrastructure, and backend/data engineering.
-
 ### HLD of my work
 
 Click the map to open the interactive version, where each block opens its LLD: the story, an architecture diagram, the tools, and links.
