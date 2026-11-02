@@ -1,0 +1,762 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Nikhil Khaneja: high-level design of my work. Click each block for its low-level design.">
+<title>Nikhil Khaneja · System Map</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a clean architecture sheet. Newest year on top; lanes are columns, weighted by how much each holds. Click a component for its low-level design. */
+:root{
+  --bg:#F2F4F6; --sheet:#FFFFFF; --surface:#FFFFFF; --raise:#F7F9FA; --fg:#0F1A22; --muted:#66757F; --faint:#98A5AE; --line:#DFE5E9; --hair:#EDF1F3;
+  --accent:#2453A6; --shadow:0 1px 2px rgba(15,26,34,.06),0 2px 8px rgba(15,26,34,.04); --shadow-hi:0 6px 20px rgba(15,26,34,.12);
+  --edu:#0E7C6B; --exp:#2453A6; --proj:#C0570F; --ach:#AE3A70; --arc:#5B4FB0;
+  --display:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
+  --body:"IBM Plex Sans","Segoe UI",Roboto,Arial,sans-serif;
+  --mono:"JetBrains Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0A1117; --sheet:#0E171E; --surface:#142029; --raise:#111C24; --fg:#E5ECF1; --muted:#8B9BA7; --faint:#5F707C; --line:#1F2E39; --hair:#16232C;
+  --accent:#7AA7F2; --shadow:0 1px 2px rgba(0,0,0,.3); --shadow-hi:0 8px 24px rgba(0,0,0,.45);
+  --edu:#4FC4AF; --exp:#7AA7F2; --proj:#F0A35E; --ach:#E880B4; --arc:#A99DF2; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0A1117; --sheet:#0E171E; --surface:#142029; --raise:#111C24; --fg:#E5ECF1; --muted:#8B9BA7; --faint:#5F707C; --line:#1F2E39; --hair:#16232C;
+  --accent:#7AA7F2; --shadow:0 1px 2px rgba(0,0,0,.3); --shadow-hi:0 8px 24px rgba(0,0,0,.45);
+  --edu:#4FC4AF; --exp:#7AA7F2; --proj:#F0A35E; --ach:#E880B4; --arc:#A99DF2; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5;margin:0;-webkit-font-smoothing:antialiased}
+.wrap{padding-block:40px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:1480px;margin:0 auto;display:grid;gap:28px}
+
+/* header */
+header{display:block}
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(26px,3.2vw,34px);line-height:1.05;margin:6px 0 6px;letter-spacing:-.025em;text-wrap:balance}
+.lede{color:var(--muted);max-width:62ch;margin:0;font-size:16px}
+.facts{display:grid;grid-template-columns:repeat(2,minmax(120px,auto));gap:14px 28px;margin:0}
+.facts div{display:grid;gap:2px;border-top:1px solid var(--line);padding-top:8px}
+.facts dt{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.facts dd{margin:0;font-family:var(--display);font-weight:600;font-size:20px;letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+@media (max-width:760px){header{grid-template-columns:1fr}}
+
+/* sheet */
+.sheet{background:var(--sheet);border:1px solid var(--line);border-radius:14px;position:relative;min-width:0;box-shadow:var(--shadow);overflow:hidden}
+.sheet-head{display:flex;justify-content:space-between;align-items:center;gap:10px 20px;padding:14px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.sheet-head .t{font-family:var(--display);font-weight:600;font-size:16px}
+.sheet-head .t small{font-family:var(--mono);font-weight:400;font-size:11.5px;color:var(--muted);margin-left:10px;letter-spacing:.02em}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-family:var(--mono);font-size:11.5px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.dot{width:9px;height:9px;border-radius:50%;background:currentColor;display:inline-block}
+.sw{width:16px;height:10px;border:1.5px dashed var(--faint);border-radius:3px;display:inline-block}
+.scroller{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+.canvas{position:relative}
+.vhead{position:absolute;left:0;right:0;top:0;display:flex;align-items:stretch;border-bottom:1px solid var(--line);background:var(--raise);z-index:5}
+.vaxis-h{display:flex;align-items:center;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-left:16px}
+.lanelabel{display:flex;align-items:center;gap:8px;padding-left:14px;font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--fg);font-weight:500;border-left:1px solid var(--line)}
+.lanelabel i{width:8px;height:8px;background:var(--lc);border-radius:50%;display:inline-block}
+.lanelabel em{font-style:normal;color:var(--faint);font-weight:400}
+.yband{position:absolute;left:0;right:0;border-top:1px solid var(--hair)}
+.yband.now{background:color-mix(in srgb,var(--accent) 3.5%,transparent)}
+.year{position:absolute;left:0;display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:14px 0 0 16px;background:none;border:0;color:var(--fg);cursor:pointer;text-align:left;z-index:2}
+.year span{font-family:var(--display);font-weight:700;font-size:22px;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums;color:var(--faint);transition:color .15s}
+.year.now span{color:var(--accent)}
+.year small{color:var(--muted);font-size:11px;line-height:1.3;padding-right:10px;font-family:var(--mono)}
+.year:hover span,.year:focus-visible span{color:var(--fg)}
+.year:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.lanesep{position:absolute;top:0;bottom:0;border-left:1px solid var(--hair);pointer-events:none}
+
+.blk{position:absolute;display:flex;flex-direction:column;justify-content:flex-start;gap:3px;padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg);text-align:left;cursor:pointer;font:inherit;overflow:hidden;z-index:2;box-shadow:var(--shadow);transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease}
+.blk b{display:flex;align-items:center;gap:7px;font-family:var(--display);font-weight:600;font-size:14.5px;line-height:1.2;letter-spacing:-.005em;min-width:0}
+.blk b::before{content:"";flex:0 0 7px;height:7px;border-radius:50%;background:var(--lc)}
+.blk b em{font-style:normal;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.blk b{align-items:flex-start}.blk b::before{margin-top:6px}
+[hidden]{display:none!important}
+.blk span{font-size:12px;color:var(--muted);line-height:1.35;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;padding-left:14px}
+.blk.tall{background:color-mix(in srgb,var(--lc) 6%,var(--surface));border-color:color-mix(in srgb,var(--lc) 28%,var(--line));box-shadow:none}
+.blk.planned,.blk.tbc{border-style:dashed;border-color:color-mix(in srgb,var(--lc) 45%,var(--line));box-shadow:none;background:var(--raise)}
+.blk:hover,.blk:focus-visible{transform:translateY(-2px);box-shadow:var(--shadow-hi);border-color:var(--lc);outline:none;z-index:4}
+.blk.lit{border-color:var(--lc);box-shadow:0 0 0 3px color-mix(in srgb,var(--lc) 22%,transparent);z-index:4}
+.blk .port{position:absolute;right:10px;top:12px;width:12px;height:12px;opacity:.45;background:currentColor;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M6 3h7v7M13 3 4 12' stroke='black' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M6 3h7v7M13 3 4 12' stroke='black' stroke-width='1.8' fill='none' stroke-linecap='round'/%3E%3C/svg%3E") center/contain no-repeat}
+.blk.has-port b{padding-right:16px}
+.blk:not(.tall){padding-top:8px;padding-bottom:6px}
+.blk:not(.tall) span{-webkit-line-clamp:1;white-space:nowrap;text-overflow:ellipsis;display:block}
+/* focus lane: vertical phase rails */
+.blk.phase{padding:12px 10px;align-items:stretch;border:0;box-shadow:none;border-radius:10px;background:linear-gradient(180deg,color-mix(in srgb,var(--lc) 16%,var(--surface)),color-mix(in srgb,var(--lc) 6%,var(--surface)))}
+.blk.phase b{display:block;font-size:13px;line-height:1.3;color:color-mix(in srgb,var(--lc) 75%,var(--fg));white-space:normal;overflow-wrap:normal;hyphens:none}
+.blk.phase b::before{display:none}
+.blk.phase b em{display:block;overflow:visible;-webkit-line-clamp:unset;white-space:normal}
+.blk.phase span{display:block;padding-left:0;margin-top:4px;font-size:11px;-webkit-line-clamp:3}
+.blk.phase:hover,.blk.phase:focus-visible{box-shadow:0 0 0 2px var(--lc)}
+
+svg.wires{position:absolute;inset:0;pointer-events:none;z-index:1;overflow:visible}
+svg.wires path{fill:none;stroke:var(--faint);stroke-width:1.25;opacity:.7}
+svg.wires path.lit{stroke:var(--accent);opacity:1;stroke-width:2}
+svg.wires circle{fill:var(--faint)}
+svg.wires .rail{stroke:color-mix(in srgb,var(--proj) 45%,var(--line));stroke-width:2;stroke-linecap:round}
+svg.wires path.leader{stroke:var(--proj);opacity:.18;stroke-width:1}
+svg.wires circle.pin{fill:var(--surface);stroke:var(--proj);stroke-width:1.75}
+svg.wires path.leader.on{opacity:.9;stroke-width:1.5}
+svg.wires circle.pin.on{fill:var(--proj);r:5}
+svg.wires marker path{fill:var(--faint);stroke:none;opacity:1}
+
+.lvl{position:absolute;z-index:2;border-radius:6px;background:color-mix(in srgb,var(--proj) calc(var(--k,1)*7%),var(--surface));border:1px solid color-mix(in srgb,var(--proj) 30%,var(--line));display:flex;align-items:flex-start;justify-content:center;padding:10px 0;overflow:hidden}
+.lvl[data-lvl="1"]{--k:1}.lvl[data-lvl="2"]{--k:2}.lvl[data-lvl="3"]{--k:3}.lvl[data-lvl="4"]{--k:4}
+.lvl span{writing-mode:vertical-rl;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:color-mix(in srgb,var(--proj) 80%,var(--fg));white-space:nowrap;font-weight:500}
+.lvl.on{border-color:var(--proj);box-shadow:0 0 0 2px color-mix(in srgb,var(--proj) 25%,transparent)}
+.hint{font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 12px}
+
+/* year strip */
+.strip{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
+.ycard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 16px 14px;text-align:left;color:var(--fg);font:inherit;cursor:pointer;display:grid;gap:6px;min-width:0;box-shadow:var(--shadow);transition:border-color .15s,transform .15s}
+.ycard:hover,.ycard:focus-visible{border-color:var(--accent);outline:none;transform:translateY(-2px)}
+.ycard .yr{font-family:var(--display);font-size:28px;font-weight:700;letter-spacing:-.02em;line-height:1;color:var(--faint);font-variant-numeric:tabular-nums}
+.ycard.now .yr{color:var(--accent)}
+.ycard .th{font-family:var(--display);font-weight:600;font-size:16px;line-height:1.2}
+.ycard .ln{font-size:13px;color:var(--muted)}
+.bars{display:flex;gap:3px;margin-top:6px}
+.bars i{height:6px;flex:0 0 auto;border-radius:3px}
+
+/* drawer */
+.scrim{position:fixed;inset:0;background:rgba(5,15,25,.35);z-index:20}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(620px,100%);background:var(--surface);border-left:1px solid var(--line);z-index:21;display:flex;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);padding-right:env(safe-area-inset-right,0px)}
+.dhead{padding:18px 22px 14px;border-bottom:1px solid var(--line);display:grid;gap:6px;position:relative}
+.dhead .meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border:1px solid var(--lc,var(--line));color:var(--lc,var(--fg));border-radius:3px;font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+.dhead h2{font-family:var(--display);font-size:26px;line-height:1.1;margin:0;text-wrap:balance;padding-right:40px}
+.dhead .role{color:var(--muted);margin:0}
+.close{position:absolute;right:14px;top:14px;width:36px;height:36px;border:1px solid var(--line);border-radius:4px;background:var(--sheet);color:var(--fg);font-size:18px;cursor:pointer}
+.close:focus-visible{outline:2px solid var(--accent)}
+.dbody{overflow-y:auto;padding:6px 22px 28px;display:grid;gap:4px}
+.sec h3{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:18px 0 8px;font-weight:500;display:flex;align-items:center;gap:8px}
+.sec h3::after{content:"";flex:1;border-top:1px solid var(--line)}
+.sec p{margin:0;max-width:66ch}
+.story{margin:0;padding:0;list-style:none;display:grid;gap:8px}
+.story li{padding-left:16px;position:relative}
+.story li::before{content:"";position:absolute;left:0;top:.62em;width:7px;height:7px;border:1.5px solid var(--lc,var(--accent));border-radius:1px}
+.num{font-family:var(--mono);font-weight:500;font-variant-numeric:tabular-nums;color:var(--fg);background:color-mix(in srgb,var(--lc,var(--accent)) 14%,transparent);padding:0 3px;border-radius:2px}
+.diagram{border:1px solid var(--line);border-radius:4px;background:var(--sheet);padding:12px;overflow-x:auto;min-height:60px}
+.diagram svg{max-width:100%;height:auto}
+.diagram .loading{font-family:var(--mono);font-size:12px;color:var(--muted)}
+.tools{display:flex;flex-wrap:wrap;gap:6px}
+.tool{font-family:var(--mono);font-size:12px;padding:3px 8px;border:1px solid var(--line);border-radius:3px;background:var(--sheet)}
+.links{display:grid;gap:6px}
+.links a{color:var(--accent);text-decoration:none;font-family:var(--mono);font-size:13px;overflow-wrap:anywhere}
+.links a:hover{text-decoration:underline}
+.related{display:flex;flex-wrap:wrap;gap:6px}
+.rel{font:inherit;font-size:13px;padding:4px 10px;border:1px solid var(--lc);border-radius:3px;background:color-mix(in srgb,var(--lc) 8%,var(--surface));color:var(--fg);cursor:pointer}
+.rel:focus-visible{outline:2px solid var(--accent)}
+.note{font-size:13px;color:var(--muted);border-left:2px dashed var(--line);padding-left:10px}
+.grouplist{display:grid;gap:8px}
+.gitem{display:grid;grid-template-columns:auto 1fr;gap:2px 10px;align-items:baseline;text-align:left;font:inherit;color:var(--fg);background:var(--sheet);border:1px solid var(--line);border-left:3px solid var(--lc);border-radius:4px;padding:8px 10px;cursor:pointer}
+.gitem:hover,.gitem:focus-visible{border-color:var(--lc);outline:none}
+.gitem .d{font-family:var(--mono);font-size:11px;color:var(--muted);grid-row:span 2}
+.gitem b{font-family:var(--display)}
+.gitem span{font-size:13px;color:var(--muted)}
+
+@media (max-width:640px){
+  .drawer{top:auto;height:88%;width:100%;border-left:0;border-top:1px solid var(--line);border-radius:10px 10px 0 0;padding-left:env(safe-area-inset-left,0px)}
+  .dhead{padding:16px 16px 12px}.dbody{padding:4px 16px 24px}
+}
+@media (prefers-reduced-motion:reduce){.blk{transition:none}}
+</style>
+<style>[hidden]{display:none!important}</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">System map · 2018 – 2027</div>
+      <h1>Nikhil Khaneja</h1>
+      <p class="lede">HLD of Work · click each block to learn its LLD</p>
+    </div>
+  </header>
+
+  <section class="sheet" aria-label="High-level design timeline">
+    <div class="sheet-head"><span class="t">High-level design<small id="count"></small></span>
+      <div class="legend" aria-label="Legend">
+        <span style="color:var(--arc)"><i class="dot"></i>Focus</span>
+        <span style="color:var(--edu)"><i class="dot"></i>Education</span>
+        <span style="color:var(--exp)"><i class="dot"></i>Experience</span>
+        <span style="color:var(--proj)"><i class="dot"></i>Projects</span>
+        <span style="color:var(--ach)"><i class="dot"></i>Achievements</span>
+        <span><i class="sw"></i>Planned</span>
+      </div></div>
+    <div class="scroller" id="scroller"><div class="canvas" id="canvas"></div></div>
+  </section>
+
+  <section aria-label="Progress by year">
+    <p class="hint">Progress by year · bars show active components per lane</p>
+    <div class="strip" id="strip"></div>
+  </section>
+</div>
+
+<div class="scrim" id="scrim" hidden></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="dtitle" hidden>
+  <div class="dhead">
+    <div class="meta" id="dmeta"></div>
+    <h2 id="dtitle"></h2>
+    <p class="role" id="drole"></p>
+    <button class="close" id="dclose" aria-label="Close details">×</button>
+  </div>
+  <div class="dbody" id="dbody"></div>
+</aside>
+
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.min.js"></script>
+<script>
+const GH = r => "https://github.com/Nikhil-Khaneja/" + r;
+const LANES = [
+  {id:"arc",  name:"Focus",        color:"--arc", w:0.62},
+  {id:"edu",  name:"Education",    color:"--edu", w:0.85},
+  {id:"exp",  name:"Experience",   color:"--exp", w:1.05},
+  {id:"proj", name:"Projects",     color:"--proj", w:1.4},
+  {id:"ach",  name:"Achievements", color:"--ach", w:1.05},
+];
+
+// [start, end] as "YYYY-MM". end null = single point. Facts come from repos and user-confirmed resume content.
+const ITEMS = [
+  // ---------- FOCUS (progress arc) ----------
+  {id:"phase-web", lane:"arc", title:"Web foundations", sub:"HTML · PHP · Java", start:"2018-07", end:"2021-05", group:true,
+   desc:"Undergrad years. I learned by shipping small web and desktop apps, then entered my first hackathon."},
+  {id:"phase-platforms", lane:"arc", title:"Data platforms and low-latency C++", sub:"Merkle · 4 years", start:"2021-07", end:"2025-07", group:true,
+   desc:"Four years in industry: data load frameworks, Kafka pipelines, and C++17 services where p99 latency mattered."},
+  {id:"phase-ai", lane:"arc", title:"AI agents and data science", sub:"M.S. year one", start:"2025-08", end:"2026-08", group:true,
+   desc:"Back to school at SJSU. RAG systems, multi-agent backends, streaming pipelines, then production AI at MedLaunch."},
+  {id:"phase-gpu", lane:"arc", title:"GPU systems and ML compilers", sub:"Now → 2027", start:"2026-09", end:"2027-12", group:true,
+   desc:"CUDA kernels, roofline models, vLLM on an NVIDIA GB10, and a PyTorch → ONNX → INT8 NPU compiler flow."},
+
+  // ---------- EDUCATION ----------
+  {id:"mumbai", lane:"edu", title:"B.E., Computer Engineering", sub:"Mumbai University", start:"2018-08", end:"2021-05",
+   role:"Mumbai University · Aug 2018 – May 2021 · U.S. equivalent: B.S. Computer Science",
+   desc:"Computer engineering degree in Mumbai. Most of my learning happened outside class: web pages first, then PHP and MySQL apps, then Java desktop apps.",
+   story:["Built the first versions of a Stack Overflow clone, an ERP front end and a Java electricity-bill generator (now VoltWise).","Entered the Hubli Hackathon in my first semester (Aug 2018)."],
+   tools:["HTML","CSS","JavaScript","PHP","MySQL","Java","Swing"],
+   mermaid:`flowchart LR
+  A["Static web pages<br/>2018–2019"] --> B["PHP + MySQL apps<br/>2020"]
+  B --> C["Java desktop apps<br/>Employee mgmt, bill generator"]
+  C --> D["Graduated<br/>May 2021"]
+  D --> E["Joined Merkle<br/>Jul 2021"]`},
+  {id:"sjsu", lane:"edu", title:"M.S., Data Intelligence (STEM)", sub:"San José State University", start:"2025-08", end:"2027-12", when:"Aug 2025 – Dec 2027 (expected)",
+   role:"San José State University · Aug 2025 – Dec 2027 (expected)",
+   desc:"Graduate program focused on data systems, machine learning and computing. Most of my 2026 projects started as coursework here and grew past the assignment.",
+   story:["Coursework: Computer Architecture, Deep Learning, NLP, Algorithms, Software Engineering, Linear Algebra, Probability, Numerical Analysis.","Course projects became public repos: LinkedIn Simulation, AKI pipeline, GPT-from-scratch lab, GPU benchmarking."],
+   tools:["Python","PyTorch","Spark","Kafka","CUDA","SQL"],
+   mermaid:`flowchart LR
+  DL["Deep Learning"] --> GPT["GPT-from-scratch lab"]
+  DL --> NPU["edge-vision-npu"]
+  CA["Computer Architecture"] --> GPU["GPU benchmarking"]
+  DS["Distributed systems"] --> LI["LinkedIn Simulation"]
+  BD["Data pipelines"] --> AKI["AKI pipeline"]
+  BD --> CR["Crypto pipeline"]`},
+
+  // ---------- EXPERIENCE ----------
+  {id:"merkle", lane:"exp", title:"Merkle (Dentsu Group)", sub:"Software Engineer I → II", start:"2021-07", end:"2025-07",
+   role:"Software Engineer · Mumbai · Jul 2021 – Jul 2025 (Software Engineer II from Jun 2023)",
+   desc:"Four years building data platforms and backend services for enterprise clients, including banking. I worked in C++17 where latency mattered and in Python and SQL where data volume did.",
+   story:[
+     "Halved p99 latency from <span class=num>2.8s</span> to <span class=num>1.4s</span> at about <span class=num>100K</span> interactions per 10 minutes. I profiled hot paths in a C++17 platform, tuned multithreading, added lock-free reads and parallelized Lucene search.",
+     "Processed <span class=num>$550M+</span> in daily deposits across <span class=num>23</span> currencies with concurrent matching and lock-free queues over Kafka.",
+     "Helped generate <span class=num>$200M+</span> in new business by shipping AI agents and a fraud-matching ML model with data scientists for Plaid Open Banking, across <span class=num>500K+</span> users.",
+     "Built Python feature pipelines for predictive modeling on <span class=num>1M+</span> customers. Drift visualizations cut MTTR by <span class=num>60%</span>.",
+     "Received the Climb High Award for platform efficiency work and code reviews."],
+   tools:["C++17","Python","SQL","Kafka","RabbitMQ","Apache Camel","Lucene","BigQuery","GCP","AWS","Linux","Power BI"],
+   mermaid:`flowchart LR
+  subgraph DATA["Data platform"]
+    SRC["Oracle · SAP · campaign events"] --> DLF["Data Load Framework<br/>Python + SQL"]
+    DLF --> BQ[("BigQuery")]
+  end
+  subgraph SVC["C++17 services"]
+    REQ["~100K interactions / 10 min"] --> LU["Parallel Lucene search<br/>lock-free reads"]
+    LU --> P99["p99 2.8s → 1.4s"]
+    DEP["Deposits · 23 currencies"] --> KQ["Kafka + lock-free queues"]
+    KQ --> MATCH["Concurrent matching<br/>$550M+ daily"]
+  end
+  BQ --> ML["Fraud-matching model<br/>+ AI agents"]`,
+   links:[]},
+  {id:"isa", lane:"exp", title:"Instructional Student Assistant", sub:"SJSU · Data Systems Core", start:"2026-01", end:"2026-05",
+   role:"San José State University · Jan 2026 – May 2026",
+   desc:"Teaching assistant for a graduate data systems course. Explaining concurrency to 30 people is a good test of whether you really understand it.",
+   story:["Taught <span class=num>30+</span> graduate students process scheduling, deadlock prevention, concurrent data structures and distributed systems.","Ran mentoring sessions on Kafka architecture and wrote lab guides."],
+   tools:["Kafka","Linux","Python","Distributed systems"],
+   mermaid:`flowchart LR
+  OS["Process scheduling"] --> DL["Deadlock prevention"]
+  DL --> CDS["Concurrent data structures"]
+  CDS --> DS["Distributed systems"]
+  DS --> K["Kafka labs"]`},
+  {id:"medlaunch", lane:"exp", title:"MedLaunch Concepts", sub:"Software Engineer Intern – Data/AI", start:"2026-06", end:"2026-08",
+   role:"Software Engineer Intern – Data/AI · Jun 2026 – Aug 2026",
+   desc:"Summer internship at a healthcare accreditation company. I worked on LLM search over hospital policies and on the AWS pipelines that feed it.",
+   story:[
+     "Built Clara, a RAG application over <span class=num>50K+</span> policy documents tuned against an evaluation set. It cut policy-lookup effort by <span class=num>60%</span>.",
+     "Traced slow requests to Lambda cold starts with CloudWatch and cut latency from <span class=num>4–8s</span> to <span class=num>1.5–2.5s</span> with request pre-warming.",
+     "Built an identity-resolution pipeline across <span class=num>5</span> Lambda services (SQS, EventBridge) and ran a <span class=num>22K</span>-policy backfill with zero hard failures.",
+     "Loaded medical dictionaries into MongoDB Atlas with AWS Glue for query expansion, cutting unmatched-query latency by <span class=num>400–550ms</span>.",
+     "Kept search analytics private with keyed-HMAC hashing and PHI-stripping allowlists, and moved credentials into Secrets Manager."],
+   tools:["Python","Flask","AWS Lambda","SQS","EventBridge","Step Functions","AWS Glue","S3","CloudWatch","MongoDB Atlas","Secrets Manager","PyTest","RAG"],
+   mermaid:`flowchart LR
+  subgraph SEARCH["Policy search"]
+    Q["Staff question"] --> CL["Clara RAG<br/>50K+ docs"]
+    CL --> QE["Query expansion"]
+    QE --> MDB[("MongoDB Atlas")]
+    CL --> PRIV["HMAC hashing<br/>PHI allowlist"]
+  end
+  subgraph PIPE["Report pipeline"]
+    S3["Survey reports · S3"] --> EB["EventBridge + SQS"]
+    EB --> L["5 Lambda services<br/>identity resolution"]
+    L --> MDB
+  end
+  GLUE["Glue ETL<br/>medical dictionaries"] --> MDB`},
+
+  // ---------- PROJECTS ----------
+  {id:"early-web", lane:"proj", title:"Early web apps", sub:"PHP · Java · HTML", start:"2018-07", end:"2020-08",
+   role:"Personal projects · 2018 – 2020 (archived)",
+   desc:"The apps I learned on: a Stack Overflow clone, an ERP front end, a company profile site, a Fruit Ninja browser game and a Java employee-management system.",
+   story:["Learned server-side PHP, MySQL schemas and Java desktop UI by building whole apps, not exercises."],
+   tools:["HTML","CSS","JavaScript","PHP","MySQL","Java"],
+   links:[["Stackoverflow clone",GH("Stackoverflow")],["ON-VESH",GH("ON-VESH")],["Quick-ERP",GH("Quick-ERP")],["Fruit-Ninja-Game",GH("Fruit-Ninja-Game")],["Employee-Management-System",GH("Employee-Management-System")]]},
+  {id:"voltwise", lane:"proj", title:"VoltWise", sub:"Java · billing + battery analytics", start:"2020-07", end:"2020-09", revisit:"2026-10",
+   role:"Started 2020 as a bill generator · extended in Oct 2026",
+   desc:"Started as a Swing + MySQL electricity-bill generator in 2020. In 2026 I turned it into an analytics engine that asks whether a home battery pays for itself on a time-of-use tariff with a demand charge.",
+   story:[
+     "Runs on <span class=num>2,075,259</span> one-minute household meter readings and a year of ISO New England hourly prices.",
+     "The deployable controller cuts peak demand <span class=num>53.1%</span> and the annual bill <span class=num>17.1%</span> (<span class=num>$422.94</span>). That captures 84% of the perfect-foresight LP optimum.",
+     "Meter anomaly detection: <span class=num>96.3%</span> event recall at <span class=num>99.97%</span> precision on 600 injected faults. Covered by <span class=num>29</span> JUnit tests."],
+   tools:["Java","MySQL","Swing","Linear programming","Gradient boosting","JUnit"],
+   mermaid:`flowchart LR
+  M["2M meter readings"] --> AN["Anomaly detection"]
+  P["ISO-NE hourly prices"] --> TOU["Time-of-use tariff"]
+  AN --> LOAD["Load analysis + forecast"]
+  LOAD --> DISP["Battery dispatch<br/>rules vs LP optimum"]
+  TOU --> DISP
+  DISP --> BILL["Bill + payback<br/>17.1% saved"]`,
+   links:[["VoltWise",GH("VoltWise")]]},
+  {id:"first-analytics", lane:"proj", title:"First-semester analytics", sub:"Alteryx · Jupyter", start:"2025-10", end:"2025-12",
+   role:"SJSU coursework · Oct – Dec 2025",
+   desc:"Two analysis projects from my first M.S. semester: an Alteryx workflow that extracts, transforms and visualizes crime data, and a statistical study of sleep, stress and academic performance across 2,000 universities.",
+   tools:["Alteryx","Python","pandas","Statistics"],
+   links:[["Crime-Data-Analysis",GH("Crime-Data-Analysis")],["Sleep, stress and academic performance",GH("Analyzing-Relationship-Between-Sleep-Stress-and-Academic-Performance")]]},
+  {id:"multiagent", lane:"proj", title:"Multiagent-LangGraph", sub:"LangGraph · FAISS · K8s", start:"2026-02", end:"2026-04",
+   role:"Personal project · Feb – Apr 2026",
+   desc:"A multi-agent RAG backend with LangGraph and FastAPI over a local FAISS vector store, with schema contracts and guardrails between agents.",
+   story:["Wrote Kubernetes manifests for it: a 2-replica Deployment with resource limits, secrets and a persistent volume for the FAISS index."],
+   tools:["Python","LangGraph","FastAPI","FAISS","Kubernetes","Docker"],
+   mermaid:`flowchart LR
+  U["Client"] --> API["FastAPI"]
+  API --> G["LangGraph<br/>agent graph"]
+  G --> R["Retriever agent"] --> F[("FAISS")]
+  G --> W["Writer agent"]
+  W --> GR["Guardrails +<br/>schema contracts"] --> API`,
+   links:[["Multiagent-LanghGraph",GH("Multiagent-LanghGraph")]]},
+  {id:"bookstack", lane:"proj", title:"bookstack-mcp", sub:"RAG · MCP server", start:"2026-03", end:"2026-04",
+   role:"Personal project · Mar – Apr 2026",
+   desc:"A library app with a RAG backend. A LangGraph pipeline answers questions over the catalog, streams answers over SSE, and exposes the knowledge base to other AI agents through an MCP server.",
+   tools:["Python","FastAPI","LangGraph","pgvector","PostgreSQL","MCP","SSE"],
+   mermaid:`flowchart LR
+  UI["Web client"] -->|"SSE"| API["FastAPI"]
+  AG["External AI agent"] -->|"MCP"| MCP["MCP server"]
+  API --> LG["LangGraph pipeline"]
+  MCP --> LG
+  LG --> GD["Guardrails"]
+  LG --> PG[("pgvector")]`,
+   links:[["bookstack-mcp",GH("bookstack-mcp")]]},
+  {id:"crypto", lane:"proj", title:"Realtime crypto pipeline", sub:"Kafka · Spark Streaming", start:"2026-03", end:"2026-04",
+   role:"Course project with a teammate · Mar – Apr 2026",
+   desc:"A streaming pipeline for live crypto prices: a Kafka producer, Spark Structured Streaming for processing, Hive for storage and a Kibana dashboard on Elasticsearch.",
+   tools:["Python","Kafka","Spark Structured Streaming","Hive","Elasticsearch","Kibana"],
+   mermaid:`flowchart LR
+  EX["Exchange price API"] --> P["Kafka producer"]
+  P --> K[("Kafka topic")]
+  K --> SS["Spark Structured Streaming"]
+  SS --> H[("Hive")]
+  SS --> ES[("Elasticsearch")] --> KB["Kibana dashboard"]`,
+   links:[["realtime-crypto-pipeline",GH("realtime-crypto-pipeline")]]},
+  {id:"linkedin", lane:"proj", title:"LinkedIn Simulation", sub:"8 microservices · LLM agents", start:"2026-04", end:"2026-05",
+   role:"Distributed systems course project · Apr – May 2026",
+   desc:"A distributed LinkedIn clone: 8 FastAPI microservices talking over Kafka, Redis caching on ElastiCache, MySQL and MongoDB, a React front end, and LLM agents that act as a recruiter and a career coach.",
+   tools:["Python","FastAPI","Kafka","Redis","ElastiCache","MySQL","MongoDB","React","AWS","Gemini 2.5 Flash"],
+   mermaid:`flowchart LR
+  UI["React app"] --> SVC["8 FastAPI services"]
+  SVC <-->|"async events"| K[("Kafka")]
+  SVC --> R[("Redis · ElastiCache")]
+  SVC --> DB[("MySQL + MongoDB")]
+  SVC --> AI["AI orchestrator"]
+  AI --> LLM["Gemini 2.5 Flash<br/>recruiter + coach agents"]`,
+   links:[["Linkedin_Simulation_LLM_Agent_Microservices",GH("Linkedin_Simulation_LLM_Agent_Microservices")]]},
+  {id:"aki", lane:"proj", title:"AKI Trajectory Analysis", sub:"MIMIC-IV · Snowflake · Kafka", start:"2026-04", end:"2026-05",
+   role:"Big data course project (group) · I owned batch ingestion and the bronze/silver layers",
+   desc:"An end-to-end pipeline on MIMIC-IV ICU data that stages acute kidney injury with KDIGO rules and scores patients' risk in real time.",
+   story:["My module: raw ingestion into Snowflake with COPY INTO, then cleaned and validated patient timelines with dbt and Great Expectations.","Downstream, the team added Spark features, MLflow models, a Kafka + Spark streaming scorer and a dashboard."],
+   tools:["Python","Snowflake","dbt","Great Expectations","Spark","Kafka","MLflow"],
+   mermaid:`flowchart LR
+  CSV["MIMIC-IV CSVs"] --> BR["Bronze · Snowflake<br/>COPY INTO"]
+  BR --> SV["Silver · dbt + GX<br/>validated timelines"]
+  SV --> GD["Gold · Spark<br/>KDIGO stages + features"]
+  GD --> MT["Mart · MLflow models"]
+  MT --> RT["Real time · Kafka + Spark"]
+  RT --> DSH["Dashboard"]
+  classDef mine stroke-width:3px
+  class BR,SV mine`,
+   links:[["AKI_trajectory_Analysis",GH("AKI_trajectory_Analysis")]]},
+  {id:"mlpipeline", lane:"proj", title:"MedLaunch take-home", sub:"Athena · boto3 · CloudFormation", start:"2026-05", end:null,
+   role:"Interview take-home for MedLaunch · May 2026",
+   desc:"The pipeline I built as the MedLaunch interview take-home. It flags healthcare facilities whose accreditation expires within six months.",
+   story:["Stage 1 runs Athena SQL over raw S3 JSON through the Glue Data Catalog. Stage 2 filters with Python/boto3 and writes an audit log for every run.","Least-privilege IAM role scoped to three buckets, all deployed with CloudFormation."],
+   tools:["Python","boto3","Amazon Athena","AWS Glue","S3","IAM","CloudFormation"],
+   mermaid:`flowchart LR
+  RAW[("S3 raw JSON")] --> GC["Glue Data Catalog"]
+  GC --> ATH["Athena SQL<br/>stage 1"]
+  RAW --> PY["Python boto3 filter<br/>expiring in 180 days"]
+  PY --> OUT[("S3 filtered")]
+  PY --> LOG[("Run audit log")]`,
+   links:[["Medlaunch-pipeline",GH("Medlaunch-pipeline")]]},
+  {id:"pneumonia", lane:"proj", title:"Pneumonia detector", sub:"TensorFlow · transfer learning", start:"2026-08", end:null,
+   role:"Deep learning project · 2026",
+   desc:"A chest X-ray pneumonia classifier that compares VGG16, VGG19 and ResNet50 transfer learning, packaged in a PyQt5 desktop app.",
+   story:["Best validation accuracy: <span class=num>91.4%</span>."],
+   tools:["Python","TensorFlow","Keras","PyQt5"],
+   links:[["deep-learning-pneumonia-detector",GH("deep-learning-pneumonia-detector")]]},
+  {id:"gptlab", lane:"proj", title:"GPT from scratch", sub:"PyTorch · RTX 5090", start:"2026-09", end:"2026-10",
+   role:"DATA 266 lab · two-person comparative study · Sep – Oct 2026",
+   desc:"Trained a small GPT from scratch, built a Yelp sentiment classifier, and ran CycleGAN style transfer.",
+   story:["The GPT has <span class=num>1.65M</span> parameters and reached perplexity <span class=num>2.33</span>, trained on an RTX 5090."],
+   tools:["Python","PyTorch","Transformers","CycleGAN","RTX 5090"],
+   mermaid:`flowchart LR
+  TXT["Text corpus"] --> TOK["Tokenizer"] --> GPT["GPT · 1.65M params"]
+  GPT --> PPL["Perplexity 2.33"]
+  Y["Yelp reviews"] --> CLS["Sentiment classifier"]
+  IMG["Images"] --> CG["CycleGAN style transfer"]`,
+   links:[["llm-sentiment-cyclegan-lab",GH("llm-sentiment-cyclegan-lab")]]},
+  {id:"crewquarters", lane:"proj", title:"CrewQuarters", sub:"vLLM · NVIDIA GB10", start:"2026-09", end:"2026-10",
+   role:"Hackathon project I led · Sep 2026, with my own follow-up work in Oct",
+   desc:"A self-hosted AI-agent platform for NVIDIA GB10 / DGX Spark machines. It serves open-weight LLMs with vLLM, runs agents in sandboxed Docker containers, and ships as an offline .deb for air-gapped installs.",
+   story:[
+     "A GPU resource manager admits a model only if free memory and the KV-cache budget allow, and unloads it when idle.",
+     "Agents never see raw secrets. They get narrow HS256 capability tokens through a broker, and secrets sit in an AES-256-GCM envelope-encrypted store.",
+     "I added an Intruder Watch agent and measured it on the GB10: <span class=num>2.6–2.9s</span> answers using about <span class=num>19 GB</span> of memory."],
+   tools:["Python","vLLM","CUDA","Docker","PostgreSQL","pgvector","nginx","FastAPI"],
+   mermaid:`flowchart LR
+  UI["Web UI"] --> NX["nginx TLS proxy"]
+  NX --> API["Control API + scheduler"]
+  API --> GRM["GPU resource manager<br/>memory + KV budget"]
+  GRM --> V["vLLM · open-weight LLMs<br/>NVIDIA GB10"]
+  API --> RT["Runtime daemon"]
+  RT --> AG["Agent containers<br/>internal network"]
+  AG --> BR["Capability broker<br/>scoped tokens"]
+  BR --> KN["Knowledge service<br/>pgvector RAG"]
+  BR --> SS["Secret store<br/>AES-256-GCM"]
+  AG --> V`,
+   links:[["crewquarters",GH("crewquarters")]]},
+  {id:"gpubench", lane:"proj", title:"GPU Performance Benchmarking", sub:"CUDA C · roofline", start:"2026-10", end:null,
+   role:"Personal project from DATA 266 work · Oct 2026",
+   desc:"A CUDA C matrix-multiply kernel profiled with nvprof on a Tesla T4, plus an RTX 5090 study covering a roofline model, FP32 → FP8 GEMM throughput, and fused vs. naive attention.",
+   story:[
+     "The kernel uses a 2D grid of 16×16 thread blocks. Timed separately from H2D/D2H copies, it runs <span class=num>1,527×</span> faster than a CPU loop at N = <span class=num>4096</span>.",
+     "RTX 5090 roofline ridge point: <span class=num>58.5</span> FLOPs/byte. GEMMs scale from <span class=num>64</span> to <span class=num>448</span> TFLOPS going from FP32 to FP8.",
+     "Fused attention is <span class=num>7.2×</span> faster than naive attention. Naive attention runs out of memory at <span class=num>22,438</span> tokens."],
+   tools:["CUDA C","nvprof","PyTorch","FP8","BF16","Tesla T4","RTX 5090"],
+   mermaid:`flowchart LR
+  subgraph T4["Tesla T4 · CUDA C"]
+    H["Host matrices"] -->|"H2D"| K["matmul kernel<br/>16x16 blocks"]
+    K -->|"D2H"| R["Result"]
+    K --> NV["nvprof timing<br/>1,527x vs CPU"]
+  end
+  subgraph R5["RTX 5090 · PyTorch"]
+    G["GEMM FP32 → FP8"] --> RF["Roofline<br/>ridge 58.5"]
+    AT["Naive vs fused attention"] --> RF
+  end`,
+   links:[["gpu-performance-benchmarking",GH("gpu-performance-benchmarking")]]},
+  {id:"edgenpu", lane:"proj", title:"edge-vision-npu", sub:"PyTorch → ONNX → INT8", start:"2026-10", end:"2026-12", when:"Oct 2026 – in progress",
+   role:"Personal project · Oct 2026 – in progress",
+   desc:"Vision models trained from scratch in PyTorch (ImageNet-20 classification and image restoration), exported to ONNX and compiled to INT8 for a Mobilint NPU with the Qubee compiler.",
+   story:[
+     "Compared <span class=num>3</span> image-restoration architectures (<span class=num>1.22M–4.85M</span> parameters) at the same training budget, measuring PSNR against runtime.",
+     "ONNX Runtime output matches PyTorch at <span class=num>26.07 dB</span> PSNR. Automated tests check operator correctness and precision at each step.",
+     "Next: INT8 latency and accuracy on the NPU itself."],
+   tools:["Python","PyTorch","ONNX","ONNX Runtime","INT8 quantization","Qubee","Mobilint NPU"],
+   mermaid:`flowchart LR
+  D["ImageNet-20 + restoration data"] --> T["PyTorch training<br/>from scratch"]
+  T --> O["ONNX export"]
+  O --> C["ONNX Runtime check<br/>26.07 dB = PyTorch"]
+  C --> Q["Qubee compiler<br/>INT8"]
+  Q --> N["Mobilint NPU"]`,
+   links:[["edge-vision-npu",GH("edge-vision-npu")]]},
+
+  // ---------- ACHIEVEMENTS ----------
+  {id:"hubli", lane:"ach", title:"Hubli Hackathon", sub:"First hackathon", start:"2018-08", end:null,
+   role:"Hackathon · Aug 2018",
+   desc:"My first hackathon, in my first semester of engineering.",
+   tools:["HTML","CSS"], links:[["HUBLI-HACKATHON",GH("HUBLI-HACKATHON")]]},
+  {id:"studylink", lane:"ach", title:"1st Prize · Study Link", sub:"Hackathon · team of 4", start:"2019-12", end:null, when:"During the B.E. (Mumbai)",
+   role:"Hackathon · during the B.E. at Mumbai University",
+   desc:"Won first prize. I led a team of 4 from problem definition to a shipped prototype in 12 hours.",
+   story:["Team of <span class=num>4</span>, <span class=num>12</span> hours, first prize."]},
+  {id:"climbhigh", lane:"ach", title:"Climb High Award", sub:"Merkle", start:"2023-06", end:null, when:"At Merkle, around the move to Software Engineer II",
+   role:"Merkle (Dentsu Group) · around the move to Software Engineer II (Jun 2023)",
+   desc:"Awarded for cloud infrastructure refactoring, system performance work and peer code reviews."},
+  {id:"snowpro", lane:"ach", title:"SnowPro Core", sub:"Snowflake certification", start:"2022-09", end:null, when:"Merkle years",
+   role:"Snowflake certification",
+   desc:"Certified in Snowflake cloud architecture, data warehousing and data governance.",
+   tools:["Snowflake"], links:[["Credential","https://achieve.snowflake.com/4d9320ea-6b52-4d88-afc7-125bd9a4cecf"]]},
+  {id:"ascend", lane:"ach", title:"Agentic Data Bootcamp", sub:"Ascend.io", start:"2025-08", end:null, when:"Start of the M.S. at SJSU",
+   role:"Certificate of completion · around the start of the M.S.",
+   desc:"Agentic data engineering and analytics labs.",
+   links:[["Credential","https://credsverse.com/credentials/a20683ee-1502-4b68-b900-881fea2c7711?preview=1"]]},
+  {id:"deletedb", lane:"ach", title:"DeleteDB Hackathon", sub:"Built CrewQuarters", start:"2026-09", end:null,
+   role:"Hackathon · Sep 24–25, 2026",
+   desc:"Built CrewQuarters, an AI-agent platform for NVIDIA GB10 machines, in two days."},
+  {id:"msgrad", lane:"ach", title:"M.S. graduation", sub:"SJSU · M.S. Data Intelligence", start:"2027-12", end:null, planned:true,
+   role:"San José State University · expected Dec 2027",
+   desc:"Expected completion of the M.S. in Data Intelligence."},
+];
+
+// "Built on → leads to" links drawn as wires on the HLD.
+const EDGES = [
+  ["mumbai","merkle"],["early-web","voltwise"],["merkle","sjsu"],["sjsu","isa"],
+  ["mlpipeline","medlaunch"],["bookstack","medlaunch"],["crewquarters","deletedb"],["gptlab","gpubench"],["sjsu","first-analytics"]
+];
+
+// Projects are ordered by engineering level, not by date. Real dates stay in each panel.
+const LEVELS = [
+  {n:4, name:"Systems · GPU"},
+  {n:3, name:"Distributed data"},
+  {n:2, name:"Applied AI · cloud"},
+  {n:1, name:"Foundation"},
+];
+const LEVEL = {"edgenpu":4,"gpubench":4,"crewquarters":4,"gptlab":4,
+  "linkedin":3,"aki":3,"crypto":3,
+  "multiagent":2,"bookstack":2,"mlpipeline":2,"pneumonia":2,"voltwise":2,
+  "first-analytics":1,"early-web":1};
+const YEARS = [2018,2019,2020,2021,2022,2023,2024,2025,2026,2027];
+// Busy years get more width so the 2026 projects stay readable.
+const WEIGHT = {2018:1.1,2019:.75,2020:1.05,2021:.9,2022:.75,2023:.8,2024:.75,2025:1.2,2026:4.6,2027:1.5};
+const YEAR_THEME = {
+  2018:"Started engineering; first web pages and first hackathon.",
+  2019:"Static sites and company profile pages.",
+  2020:"PHP and Java apps, including the bill generator that became VoltWise.",
+  2021:"Graduated in May. Joined Merkle in July.",
+  2022:"Data load frameworks and feature pipelines at Merkle.",
+  2023:"Software Engineer II. C++17 latency work and Kafka matching.",
+  2024:"Banking and data platform work at Merkle.",
+  2025:"Left Merkle in July. Started the M.S. at SJSU in August.",
+  2026:"Teaching assistant, MedLaunch internship, and the move into GPUs and ML compilers.",
+  2027:"Finishing the M.S.; graduation in December."
+};
+const YEAR_TITLE = {2018:"Hello, web",2019:"Building sites",2020:"First real apps",2021:"Into industry",2022:"Data platforms",2023:"Latency matters",2024:"Scale",2025:"Back to school",2026:"AI and GPUs",2027:"Graduation"};
+
+const byId = Object.fromEntries(ITEMS.map(i=>[i.id,i]));
+const ym = s => { const [y,m]=s.split("-").map(Number); return {y,m}; };
+const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const fmt = s => { const {y,m}=ym(s); return MONTHS[m-1]+" "+y; };
+const range = it => it.tbc ? "Date to confirm" : it.when || (it.end ? fmt(it.start)+" – "+fmt(it.end) : fmt(it.start));
+const laneOf = id => LANES.find(l=>l.id===id);
+
+const canvas = document.getElementById("canvas");
+const scroller = document.getElementById("scroller");
+// Vertical layout: years run top to bottom; lanes are columns.
+const AXIS_W = 108, HEAD_H = 44, UNIT = 132, MIN_H = 66, GAP = 8, TOP_PAD = 16;
+
+function geometry(){
+  const W = Math.max(scroller.clientWidth, 900);
+  const tw = LANES.reduce((a,l)=>a+l.w,0); const laneX={}, laneW={}; let lx=AXIS_W;
+  LANES.forEach(l=>{ laneW[l.id]=(W-AXIS_W)*l.w/tw; laneX[l.id]=lx; lx+=laneW[l.id]; });
+  const yy = {}; let acc = HEAD_H + TOP_PAD;
+  [...YEARS].reverse().forEach(y=>{ yy[y]={y:acc,h:UNIT*WEIGHT[y]}; acc+=yy[y].h; });
+  const y = (s, endOfMonth) => { const {y:Y,m}=ym(s); const R=yy[Y]; return R.y + R.h*(1-(m-1+(endOfMonth?1:0))/12); };
+  return {W,laneW,laneX,yy,y,H:acc+TOP_PAD};
+}
+
+let G;
+function render(){
+  G = geometry();
+  canvas.innerHTML = "";
+  canvas.style.width = G.W+"px";
+  canvas.style.height = G.H+"px";
+  // lane headers
+  const head=document.createElement("div"); head.className="vhead"; head.style.height=HEAD_H+"px";
+  head.innerHTML=`<span class="vaxis-h" style="width:${AXIS_W}px">Year</span>`+LANES.map(L=>`<span class="lanelabel" style="--lc:var(${L.color});width:${G.laneW[L.id]}px"><i></i>${L.id==="arc"?"Focus":L.name+" <em>"+ITEMS.filter(i=>i.lane===L.id).length+(L.id==="proj"?" · by level, not date":"")+"</em>"}</span>`).join("");
+  canvas.appendChild(head);
+  // year bands + clickable year labels
+  [...YEARS].reverse().forEach((y,i)=>{
+    const band=document.createElement("div"); band.className="yband"+(y===2026?" now":""); band.style.top=G.yy[y].y+"px"; band.style.height=G.yy[y].h+"px"; canvas.appendChild(band);
+    const b=document.createElement("button"); b.className="year"+(y===2026?" now":""); b.style.top=G.yy[y].y+"px"; b.style.height=G.yy[y].h+"px"; b.style.width=AXIS_W+"px";
+    b.innerHTML = `<span>${y}</span><small>${YEAR_TITLE[y]}</small>`;
+    b.setAttribute("aria-label","Summary of "+y); b.onclick=()=>openYear(y); canvas.appendChild(b);
+  });
+  LANES.forEach((L,li)=>{ const d=document.createElement("div"); d.className="lanesep"; d.style.left=G.laneX[L.id]+"px"; canvas.appendChild(d); });
+
+  const placed = {};
+  LANES.forEach((L,li)=>{
+    const spread = L.id==="proj";
+    const x0 = G.laneX[L.id], items = ITEMS.filter(i=>i.lane===L.id).sort((a,b)=> spread ? ((LEVEL[b.id]-LEVEL[a.id]) || (b.end||b.start).localeCompare(a.end||a.start)) : (b.end||b.start).localeCompare(a.end||a.start));
+    const RAIL = spread ? 30 : 0, LGAP = 22;
+    let slot = 0, top0 = HEAD_H + TOP_PAD;
+    if (spread) slot = (G.H - TOP_PAD - top0 - LGAP*(LEVELS.length-1)) / items.length;
+    // assign sub-columns for overlaps (non-spread lanes)
+    const cols = []; const geo = {};
+    items.forEach((it,idx)=>{
+      let t,b;
+      if (spread) {
+        const gi = LEVELS.findIndex(l=>l.n===LEVEL[it.id]);
+        t = top0 + idx*slot + gi*LGAP + 3; b = t + Math.max(MIN_H, slot-6);
+        geo[it.id]={t,b,col:0};
+      } else {
+        b = G.y(it.start,false); t = it.end ? G.y(it.end,true) : b - MIN_H;
+        if (b-t < MIN_H) t = b - MIN_H; if (t < HEAD_H+TOP_PAD) { const d=HEAD_H+TOP_PAD-t; t+=d; b+=d; }
+        let col = cols.findIndex(e=>e <= t+1); if(col<0){col=cols.length; cols.push(0);} cols[col]=b;
+        geo[it.id]={t,b,col};
+      }
+    });
+    const ncol = spread ? 1 : Math.max(1,cols.length);
+    const innerL = x0 + 10 + RAIL, innerW = G.laneW[L.id] - 20 - RAIL, cw = (innerW - (ncol-1)*GAP)/ncol;
+    items.forEach(it=>{
+      const g=geo[it.id], l=innerL + g.col*(cw+GAP), r=l+cw;
+      const b=document.createElement("button");
+      const hasPort=!!(it.links&&it.links.length);
+      b.className="blk"+(it.group?" phase":"")+(it.planned?" planned":"")+(it.tbc?" tbc":"")+(!it.group&&(g.b-g.t)>170?" tall":"")+(hasPort?" has-port":"");
+      b.dataset.id=it.id; b.style.setProperty("--lc",`var(${L.color})`);
+      b.style.left=l+"px"; b.style.width=cw+"px"; b.style.top=g.t+"px"; b.style.height=(g.b-g.t-GAP)+"px";
+      b.innerHTML=`<b><em>${it.title}</em></b><span>${it.sub||""}</span>`+(hasPort?`<i class="port" title="Has links"></i>`:"");
+      b.setAttribute("aria-label",`${it.title}, ${range(it)}. Open details`);
+      b.onclick=()=> it.group ? openPhase(it) : openItem(it.id);
+      b.onmouseenter=()=>highlight(it.id); b.onmouseleave=()=>highlight(null);
+      b.onfocus=()=>highlight(it.id); b.onblur=()=>highlight(null);
+      canvas.appendChild(b);
+      placed[it.id]={l,r,t:g.t,b:g.b-GAP};
+    });
+    if (spread) LEVELS.forEach(lv=>{
+      const g = items.filter(i=>LEVEL[i.id]===lv.n); if(!g.length) return;
+      const t = Math.min(...g.map(i=>placed[i.id].t)), bt = Math.max(...g.map(i=>placed[i.id].b));
+      const d=document.createElement("div"); d.className="lvl"; d.dataset.lvl=lv.n;
+      d.style.left=(x0+8)+"px"; d.style.width=(RAIL-6)+"px"; d.style.top=t+"px"; d.style.height=(bt-t)+"px";
+      d.innerHTML=`<span>L${lv.n} · ${lv.name}</span>`; canvas.appendChild(d);
+    });
+  });
+
+  const svg=document.createElementNS("http://www.w3.org/2000/svg","svg"); svg.classList.add("wires");
+  svg.setAttribute("width",G.W); svg.setAttribute("height",G.H);
+  svg.innerHTML='<defs><marker id="arw" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,1 L9,5 L0,9 z"/></marker></defs>';
+  EDGES.forEach(([a,b])=>{
+    const A=placed[a],B=placed[b]; if(!A||!B) return;
+    let d, ex, ey;
+    if (A.t >= B.b - 4) {
+      const x1=(A.l+A.r)/2, y1=A.t, x2=(B.l+B.r)/2, y2=B.b, dy=Math.max(24,(y1-y2)/2);
+      d=`M${x1},${y1} C${x1},${y1-dy} ${x2},${y2+dy} ${x2},${y2}`; ex=x2; ey=y2;
+    } else if (B.t >= A.b - 4) {
+      const x1=(A.l+A.r)/2, y1=A.b, x2=(B.l+B.r)/2, y2=B.t, dy=Math.max(24,(y2-y1)/2);
+      d=`M${x1},${y1} C${x1},${y1+dy} ${x2},${y2-dy} ${x2},${y2}`; ex=x2; ey=y2;
+    } else {
+      const right = B.l >= A.r; const x1 = right?A.r:A.l, x2 = right?B.l:B.r;
+      const y1=(A.t+A.b)/2, y2=(B.t+B.b)/2, dx=Math.max(20,Math.abs(x2-x1)/2)*(right?1:-1);
+      d=`M${x1},${y1} C${x1+dx},${y1} ${x2-dx},${y2} ${x2},${y2}`; ex=x2; ey=y2;
+    }
+    const p=document.createElementNS(svg.namespaceURI,"path"); p.setAttribute("d",d); p.setAttribute("marker-end","url(#arw)"); p.dataset.a=a; p.dataset.b=b; svg.appendChild(p);
+  });
+  canvas.appendChild(svg);
+  document.getElementById("count").textContent = `${ITEMS.filter(i=>!i.group).length} components · ${YEARS.length} years`;
+}
+
+function neighbors(id){ return EDGES.filter(e=>e.includes(id)).map(e=>e[0]===id?e[1]:e[0]); }
+function highlight(id){
+  const near = id ? new Set([id,...neighbors(id)]) : null;
+  canvas.querySelectorAll(".blk").forEach(b=>{ b.classList.toggle("lit", !!near && near.has(b.dataset.id) && b.dataset.id!==id); });
+  canvas.querySelectorAll("svg.wires > path:not(.leader)").forEach(p=>p.classList.toggle("lit", !!id && (p.dataset.a===id||p.dataset.b===id)));
+  canvas.querySelectorAll(".lvl").forEach(p=>p.classList.toggle("on", !!id && LEVEL[id]===+p.dataset.lvl));
+}
+
+function activeIn(it,y){ const s=ym(it.start).y; const e=it.end?ym(it.end).y:s; return !it.tbc && s<=y && y<=e; }
+function strip(){
+  const el=document.getElementById("strip"); el.innerHTML="";
+  [...YEARS].reverse().forEach(y=>{
+    const items=ITEMS.filter(i=>!i.group&&activeIn(i,y));
+    const card=document.createElement("button"); card.className="ycard"+(y===2026?" now":"");
+    const bars = LANES.filter(l=>l.id!=="arc").map(l=>{const n=items.filter(i=>i.lane===l.id).length; return n?`<i style="width:${n*14}px;background:var(${l.color})" title="${l.name}: ${n}"></i>`:"";}).join("");
+    card.innerHTML=`<span class="yr">${y}</span><span class="th">${YEAR_TITLE[y]}</span><span class="ln">${YEAR_THEME[y]}</span><span class="bars">${bars}</span>`;
+    card.onclick=()=>openYear(y); el.appendChild(card);
+  });
+}
+
+// ---------- drawer ----------
+const drawer=document.getElementById("drawer"), scrim=document.getElementById("scrim");
+let lastFocus=null, openId=null;
+function show(){ if(drawer.hidden){ lastFocus=document.activeElement; } drawer.hidden=false; scrim.hidden=false; document.getElementById("dclose").focus(); }
+function close(){ drawer.hidden=true; scrim.hidden=true; openId=null; try{ history.replaceState(null,"",location.pathname+location.search); }catch(e){} if(lastFocus) lastFocus.focus(); }
+document.getElementById("dclose").onclick=close; scrim.onclick=close;
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"&&!drawer.hidden) close(); });
+
+function sec(title, html){ return `<div class="sec"><h3>${title}</h3>${html}</div>`; }
+function setHead(lane, metaExtra, title, role){
+  const L=laneOf(lane); drawer.style.setProperty("--lc",`var(${L.color})`);
+  document.getElementById("dmeta").innerHTML=`<span class="chip" style="--lc:var(${L.color})">${lane==="arc"?"Focus":L.name} · ${lane==="arc"?"HLD":"LLD"}</span>${metaExtra}`;
+  document.getElementById("dtitle").textContent=title;
+  document.getElementById("drole").textContent=role||"";
+}
+function openItem(id){
+  const it=byId[id]; if(!it) return; openId=id;
+  const lv = LEVEL[id] ? LEVELS.find(l=>l.n===LEVEL[id]) : null;
+  setHead(it.lane, `<span>${range(it)}</span>`+(lv?`<span>· Level ${lv.n}: ${lv.name}</span>`:""), it.title, it.role||it.sub);
+  let h = sec("What it is", `<p>${it.desc}</p>`);
+  if (it.story) h += sec("Story", `<ul class="story">${it.story.map(s=>`<li>${s}</li>`).join("")}</ul>`);
+  if (it.mermaid) h += sec("Architecture", `<div class="diagram" id="dg"><span class="loading">Drawing diagram…</span></div>`);
+  if (it.tools) h += sec("Tools", `<div class="tools">${it.tools.map(t=>`<span class="tool">${t}</span>`).join("")}</div>`);
+  if (it.links && it.links.length) h += sec("Links", `<div class="links">${it.links.map(([t,u])=>`<a href="${u}" target="_blank" rel="noopener">↗ ${t}</a>`).join("")}</div>`);
+  const nb=neighbors(id);
+  if (nb.length) h += sec("Connected", `<div class="related">${nb.map(n=>{const o=byId[n];return `<button class="rel" style="--lc:var(${laneOf(o.lane).color})" data-go="${n}">${o.title}</button>`;}).join("")}</div>`);
+  if (it.tbc) h += `<p class="note" style="margin-top:16px">Placed on the timeline approximately. The exact year still needs confirming.</p>`;
+  document.getElementById("dbody").innerHTML=h;
+  wireRel(); show();
+  try{ history.replaceState(null,"","#"+id); }catch(e){}
+  if (it.mermaid) drawMermaid(it.mermaid);
+}
+function groupList(items){
+  return `<div class="grouplist">${items.map(o=>`<button class="gitem" style="--lc:var(${laneOf(o.lane).color})" data-go="${o.id}"><span class="d">${o.tbc?"TBC":fmt(o.start)}</span><b>${o.title}</b><span>${laneOf(o.lane).name} · ${o.sub||""}</span></button>`).join("")}</div>`;
+}
+function openPhase(p){
+  openId=p.id;
+  const s=p.start,e=p.end;
+  const items=ITEMS.filter(i=>!i.group&&!i.tbc&&i.lane!=="arc"&&i.start<=e&&(i.end||i.start)>=s).sort((a,b)=>a.start.localeCompare(b.start));
+  setHead("arc", `<span>${fmt(s)} – ${fmt(e)}</span>`, p.title, p.sub);
+  document.getElementById("dbody").innerHTML = sec("Summary",`<p>${p.desc}</p>`) + sec(`Components in this phase · ${items.length}`, groupList(items));
+  wireRel(); show();
+}
+function openYear(y){
+  openId="y"+y;
+  const items=ITEMS.filter(i=>!i.group&&activeIn(i,y)).sort((a,b)=>a.start.localeCompare(b.start));
+  setHead("arc", `<span>Year view</span>`, `${y} · ${YEAR_TITLE[y]}`, YEAR_THEME[y]);
+  document.getElementById("dbody").innerHTML = sec(`Active this year · ${items.length}`, items.length?groupList(items):`<p class="note">Nothing dated in this year yet.</p>`);
+  wireRel(); show();
+}
+function wireRel(){ document.querySelectorAll("#dbody [data-go]").forEach(b=>b.onclick=()=>{ const it=byId[b.dataset.go]; it.group?openPhase(it):openItem(it.id); document.getElementById("dbody").scrollTop=0; }); }
+
+// ---------- mermaid ----------
+let mmReady = typeof window.mermaid!=="undefined", mmSeq=0, lastCode=null;
+function tok(n){ return getComputedStyle(document.documentElement).getPropertyValue(n).trim(); }
+function initMermaid(){
+  if(!mmReady) return;
+  const lc = getComputedStyle(drawer).getPropertyValue("--lc").trim() || tok("--accent");
+  window.mermaid.initialize({startOnLoad:false, securityLevel:"strict", theme:"base", flowchart:{curve:"basis",htmlLabels:true,padding:10},
+    themeVariables:{ background:tok("--sheet"), primaryColor:tok("--surface"), primaryBorderColor:tok("--muted"), primaryTextColor:tok("--fg"),
+      lineColor:tok("--muted"), secondaryColor:tok("--sheet"), tertiaryColor:tok("--sheet"), clusterBkg:tok("--sheet"), clusterBorder:tok("--line"),
+      edgeLabelBackground:tok("--surface"), fontFamily:'"IBM Plex Mono", ui-monospace, monospace', fontSize:"13px", titleColor:tok("--muted")}});
+}
+async function drawMermaid(code){
+  lastCode=code; const el=document.getElementById("dg"); if(!el) return;
+  if(!mmReady){ el.innerHTML=`<pre style="margin:0;font-family:var(--mono);font-size:12px;white-space:pre">${code.replace(/</g,"&lt;")}</pre>`; return; }
+  initMermaid();
+  try{ const {svg}=await window.mermaid.render("mm"+(++mmSeq), code); if(lastCode===code && document.getElementById("dg")) document.getElementById("dg").innerHTML=svg; }
+  catch(err){ el.innerHTML=`<p class="note">Diagram could not be drawn.</p>`; }
+}
+const rerender=()=>{ if(!drawer.hidden && lastCode && document.getElementById("dg")) drawMermaid(lastCode); };
+try{ matchMedia("(prefers-color-scheme: dark)").addEventListener("change",rerender); }catch(e){}
+new MutationObserver(rerender).observe(document.documentElement,{attributes:true,attributeFilter:["data-theme"]});
+
+// ---------- boot ----------
+render(); strip();
+let rt; addEventListener("resize",()=>{ clearTimeout(rt); rt=setTimeout(render,120); });
+function fromHash(){ const h=location.hash.slice(1); if(h && byId[h]) { byId[h].group?openPhase(byId[h]):openItem(h); } }
+fromHash(); addEventListener("hashchange",fromHash);
+</script>
+
+</body>
+</html>

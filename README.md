@@ -4,6 +4,17 @@ I'm a software engineer working on **AI agents, GPU performance, and data system
 
 I'm looking for **Summer 2027 internships** in ML systems, AI infrastructure, and backend/data engineering.
 
+### HLD of my work
+
+Click the map to open the interactive version, where each block opens its LLD: the story, an architecture diagram, the tools, and links.
+
+<a href="https://nikhil-khaneja.github.io/Nikhil-Khaneja/career-map/">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/career-map-dark.png">
+    <img alt="High-level design of my work, 2018 to 2027: focus, education, experience, projects by level, and achievements" src="assets/career-map-light.png">
+  </picture>
+</a>
+
 ### What I'm building
 
 | Project | What it is | Stack |
