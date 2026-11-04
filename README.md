@@ -3,6 +3,7 @@
 </p>
 
 <p align="center">
+  <a href="https://nikhil-khaneja.github.io"><img src="https://img.shields.io/badge/Portfolio-nikhil--khaneja.github.io-76B900?style=for-the-badge&logo=githubpages&logoColor=white&labelColor=0b1020" alt="Portfolio"></a>
   <a href="https://linkedin.com/in/khanejan"><img src="https://img.shields.io/badge/LinkedIn-khanejan-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white&labelColor=0b1020" alt="LinkedIn"></a>
   <img src="https://img.shields.io/badge/SJSU-M.S._Data_Intelligence_'27-B197FC?style=for-the-badge&labelColor=0b1020" alt="SJSU M.S. Data Intelligence">
   <img src="https://img.shields.io/badge/SnowPro-Core_Certified-29B5E8?style=for-the-badge&logo=snowflake&logoColor=white&labelColor=0b1020" alt="SnowPro Core Certified">
@@ -92,6 +93,7 @@ I build **AI agents, GPU-aware systems and data platforms**, and I like proving 
 <h2>📫 Find me</h2>
 
 <p>
+  <a href="https://nikhil-khaneja.github.io"><img src="https://img.shields.io/badge/Portfolio-Visit-76B900?style=for-the-badge&logo=githubpages&logoColor=white" alt="Portfolio"></a>
   <a href="https://linkedin.com/in/khanejan"><img src="https://img.shields.io/badge/LinkedIn-Connect-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn"></a>
   <img src="https://img.shields.io/badge/Based_in-San_Jose,_CA-30363D?style=for-the-badge&logo=googlemaps&logoColor=white" alt="San Jose, CA">
 </p>
